@@ -1,4 +1,4 @@
-(defvar turkish-el-version "$Id: turkish.el,v 1.3 2006/10/16 12:55:15 dyuret Exp dyuret $")
+(defvar turkish-el-version "$Id: turkish.el,v 1.4 2006/10/16 13:56:42 dyuret Exp dyuret $")
 
 ;;; Emacs Turkish Extension (c) Deniz Yuret, 2006
 
@@ -23,6 +23,8 @@
 ;;; accents each time you hit space:
 
 (local-set-key " " 'turkish-correct-last-word)
+(local-set-key "\t" 'turkish-correct-last-word)
+(local-set-key "\C-m" 'turkish-correct-last-word)
 
 ;;; If the program makes a mistake, you can use C-t to toggle the
 ;;; accent of the character at the cursor:
@@ -42,7 +44,9 @@
 (defun turkish-correct-last-word ()
   "Adds necessary accents to the last word when a space is typed."
   (interactive)
-  (self-insert-command 1)
+  (if (= ?\r last-input-event)
+      (newline)
+    (self-insert-command 1))
   (save-excursion
     (backward-char)
     (while (not (or (bolp) (= ?\  (char-before))))
@@ -61,34 +65,66 @@
 	  (backward-char)))))
 
 (defun turkish-need-correction-p ()
-  "Determine if char at cursor (assumed ascii) needs correction."
-  (let* ((plist (assoc (downcase (following-char)) turkish-pattern-alist))
-	 (need (and plist (assoc-default nil (cdr plist) 'turkish-match-pattern nil))))
-    (if (= ?I (following-char)) (not need) need)))
+  "Determine if char at cursor needs correction."
+  (let* ((ch (following-char))
+	 (tr (turkish-asciify-char ch))
+	 (pl (assoc (downcase tr) turkish-pattern-alist))
+	 (m (and pl (assoc-default nil (cdr pl) 'turkish-match-pattern nil))))
+    ;; if m then char should turn into turkish else stay ascii
+    ;; only exception with capital I when we need the reverse
+    (cond 
+     ((= ?I ch) (not m))
+     ((= ch tr) m)
+     (t (not m)))))
 
 (defun turkish-match-pattern (str ignore)
+  "Decides whether a pattern is a match when X and point are aligned."
   (let* ((idx (turkish-char-position ?X str))
 	 (start (- (point) idx))
 	 (end (+ start (length str))))
     (and (>= start (point-min))
 	 (<= end (point-max))
-	 (let ((txt (downcase (turkish-asciify (buffer-substring-no-properties start end)))))
+	 (let ((txt (turkish-remove-non-alnum
+		     (downcase
+		      (turkish-asciify 
+		       (buffer-substring-no-properties start end))))))
 	   (aset txt idx ?X)
+	   ;; (if (string= txt str) (message str))
 	   (string= txt str)))))
 
-(defun turkish-char-position (char str &optional n)
-  (cond ((not n) (turkish-char-position char str 0))
-	((>= n (length str)) nil)
-	((= char (aref str n)) n)
-	(t (turkish-char-position char str (+ n 1)))))	
+(defun turkish-char-position (char str)
+  (let ((n (length str))
+	(i 0))
+    (while (and (< i n)
+		(not (= char (aref str i))))
+      (setq i (+ 1 i)))
+    (if (< i n) i nil)))
 
-(defun turkish-asciify (str &optional n)
-  (cond ((not n) (turkish-asciify str 0))
-	((>= n (length str)) str)
-	(t (let ((m (assoc (aref str n) turkish-asciify-alist)))
-	     (if m (aset str n (cdr m)))
-	     (turkish-asciify str (+ 1 n))))))
+(defun turkish-asciify (str)
+  (let ((n (length str))
+	(i 0))
+    (while (< i n)
+      (let ((m (assoc (aref str i) turkish-asciify-alist)))
+	(if m (aset str i (cdr m)))
+	(setq i (+ 1 i)))))
+  str)
   
+(defun turkish-remove-non-alnum (str)
+  (let ((n (length str))
+	(i 0))
+    (while (< i n)
+      (let ((c (aref str i)))
+	(or (and (<= ?0 c) (<= c ?9))
+	    (and (<= ?a c) (<= c ?z))
+	    (and (<= ?A c) (<= c ?Z))
+	    (aset str i ?\ )))
+      (setq i (+ 1 i))))
+  str)
+
+(defun turkish-asciify-char (char)
+  (let ((m (assoc char turkish-asciify-alist)))
+    (if m (cdr m) char)))
+
 (defvar turkish-toggle-accent-alist 
   '((?c . ?ç) (?C . ?Ç) (?ç . ?c) (?Ç . ?C)
     (?g . ?ğ) (?G . ?Ğ) (?ğ . ?g) (?Ğ . ?G)
