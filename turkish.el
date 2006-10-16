@@ -1,17 +1,43 @@
-(defvar turkish-el-version "$Id: turkish.el,v 1.2 2006/10/16 12:55:00 dyuret Exp dyuret $")
+(defvar turkish-el-version "$Id: turkish.el,v 1.3 2006/10/16 12:55:15 dyuret Exp dyuret $")
 
-(local-set-key "\C-t" 'turkish-toggle-accent)
+;;; Emacs Turkish Extension (c) Deniz Yuret, 2006
+
+;;; This is for people trying to type Turkish documents on a U.S.
+;;; keyboard.  The latest version is available at:
+;;;       http://www.denizyuret.com/turkish
+
+;;; It was inspired by GÃ¶khan TÃ¼r's deasciifier:
+;;;       http://www.hlst.sabanciuniv.edu/TL/deascii.html
+
+;;; The program uses decision lists (included at the end of this
+;;; file) which was created based on 1 million words of Turkish news
+;;; text using the GPA algorithm.  For more information on GPA:
+;;;       http://www.denizyuret.com/pub/iscis06
+
+;;; One of these days I will turn this into a proper emacs minor mode.
+;;; In order to use it for now, first open a buffer in which you wish
+;;; to type Turkish text and then load turkish.el:
+;;;       M-x load-file ENTER turkish.el ENTER
+
+;;; The program tries to correct the previous word by adding Turkish
+;;; accents each time you hit space:
+
 (local-set-key " " 'turkish-correct-last-word)
 
-(defun turkish-toggle-accent ()
-  "Adds or removes turkish accent at the cursor."
-  (interactive)
-  (let ((alt (assoc (following-char) turkish-toggle-accent-alist)))
-    (if alt
-	(progn 
-	  (delete-char 1)
-	  (insert (cdr alt))
-	  (backward-char)))))
+;;; If the program makes a mistake, you can use C-t to toggle the
+;;; accent of the character at the cursor:
+
+(local-set-key "\C-t" 'turkish-toggle-accent)
+
+;;; The following makes the default encoding utf-8 but files with
+;;; latin-5 encoding will also be recognized:
+
+(prefer-coding-system 'iso-latin-5)
+(prefer-coding-system 'utf-8)
+(set-terminal-coding-system 'utf-8)
+(set-keyboard-coding-system 'utf-8)
+
+;;; This is the code:
 
 (defun turkish-correct-last-word ()
   "Adds necessary accents to the last word when a space is typed."
@@ -23,6 +49,16 @@
       (backward-char)
       (if (turkish-need-correction-p)
 	  (turkish-toggle-accent)))))
+
+(defun turkish-toggle-accent ()
+  "Adds or removes turkish accent at the cursor."
+  (interactive)
+  (let ((alt (assoc (following-char) turkish-toggle-accent-alist)))
+    (if alt
+	(progn 
+	  (delete-char 1)
+	  (insert (cdr alt))
+	  (backward-char)))))
 
 (defun turkish-need-correction-p ()
   "Determine if char at cursor (assumed ascii) needs correction."
@@ -54,20 +90,31 @@
 	     (turkish-asciify str (+ 1 n))))))
   
 (defvar turkish-toggle-accent-alist 
-  '((?c . ?ç) (?C . ?Ç) (?ç . ?c) (?Ç . ?C)
-    (?g . ?ð) (?G . ?Ð) (?ð . ?g) (?Ð . ?G)
-    (?i . ?ý) (?Ý . ?I) (?ý . ?i) (?I . ?Ý)
-    (?o . ?ö) (?O . ?Ö) (?ö . ?o) (?Ö . ?O)
-    (?s . ?þ) (?S . ?Þ) (?þ . ?s) (?Þ . ?S)
-    (?u . ?ü) (?U . ?Ü) (?ü . ?u) (?Ü . ?U)))
+  '((?c . ?Ã§) (?C . ?Ã‡) (?Ã§ . ?c) (?Ã‡ . ?C)
+    (?g . ?ÄŸ) (?G . ?Äž) (?ÄŸ . ?g) (?Äž . ?G)
+    (?i . ?Ä±) (?Ä° . ?I) (?Ä± . ?i) (?I . ?Ä°)
+    (?o . ?Ã¶) (?O . ?Ã–) (?Ã¶ . ?o) (?Ã– . ?O)
+    (?s . ?ÅŸ) (?S . ?Åž) (?ÅŸ . ?s) (?Åž . ?S)
+    (?u . ?Ã¼) (?U . ?Ãœ) (?Ã¼ . ?u) (?Ãœ . ?U)))
 
 (defvar turkish-asciify-alist 
-  '((?ç . ?c) (?Ç . ?C)
-    (?ð . ?g) (?Ð . ?G)
-    (?Ý . ?I) (?ý . ?i)
-    (?ö . ?o) (?Ö . ?O)
-    (?þ . ?s) (?Þ . ?S)
-    (?ü . ?u) (?Ü . ?U)))
+  '((?Ã§ . ?c) (?Ã‡ . ?C)
+    (?ÄŸ . ?g) (?Äž . ?G)
+    (?Ä° . ?I) (?Ä± . ?i)
+    (?Ã¶ . ?o) (?Ã– . ?O)
+    (?ÅŸ . ?s) (?Åž . ?S)
+    (?Ã¼ . ?u) (?Ãœ . ?U)))
+
+
+;;; These are the decision lists.  There is one decision list for each
+;;; of the letters 'c', 'g', 'i', 'o', 's', 'u'.  The format is pretty
+;;; self explanatory: each string is a pattern with the target
+;;; character replaced by an 'X'.  All other characters in the pattern
+;;; are lowercase ascii.  If the string is followed by a '. t',
+;;; e.g. ("gerX" . t), the program will replace the target character
+;;; with its Turkish version.  If there is no '. t', e.g. ("nXi"), the
+;;; character will not be replaced.  The first matching pattern is
+;;; used to decide what to do.
 
 (defvar turkish-pattern-alist
   '((?c ("u , X " . t) ("taturX" . t) ("t Xam " . t) ("suXuna" . t) ("n muXt" . t) ("n , X " . t) ("n ( X " . t) ("nXayir" . t) ("lamisX" . t) ("ireXe " . t) ("i Xim " . t) ("i Xaml" . t) ("i , X " . t) ("hinXi " . t) ("dinXay" . t) ("banXic" . t) ("an . X" . t) ("anXay " . t) ("akXan'" . t) ("a ( X " . t) (" z . X" . t) (" Xinde" . t) ("Xolles" . t) ("Xoller" . t) ("Xilary" . t) ("5'i aX" . t) (", dolX" . t) ("\" aXiz" . t) ("\" Xan'" . t) ("\" Xam " . t) ("zi . X") ("yatXil") ("ureviX") ("sor aX") ("ne Xin") ("n cokX") ("lum aX") ("lu Xay") ("kil Xe") ("k saX ") ("i Xad ") ("hi Xin") ("haretX") ("emeriX") ("ce Xop") ("ca saX") ("a yasX") (" aXina") ("Xiydik") ("Xivil ") ("Xisi'd") ("Xiliye") ("aXaba") ("liXa ") ("usmaX") ("ka aX" . t) ("rXil " . t) ("Xilas") ("ismaX") ("Xince" . t) ("a saX" . t) ("jim X") ("deriX") ("us Xo" . t) ("s Xam") ("erenX") ("c Xin") ("rus X" . t) ("vil X") ("s Xin") ("nomiX") ("ey uX") ("Xelin") (": Xin") ("turXe" . t) ("rXind" . t) ("rXay " . t) ("pogaX" . t) ("panXo" . t) ("mekiX" . t) ("manXo" . t) ("l haX" . t) ("kaniX" . t) ("hanXe" . t) ("guk X" . t) ("eneX " . t) ("caXa " . t) ("ave X" . t) ("auziX" . t) ("arnaX" . t) (" porX" . t) (" pinX" . t) (" koXu" . t) (" ganX" . t) (" faXa" . t) (" aXas" . t) (" aXak" . t) ("Xons " . t) ("Xinic" . t) ("Xilav" . t) ("Xerez" . t) ("Xeng " . t) ("Xemis" . t) ("Xebi'" . t) ("Xaval" . t) ("Xarda" . t) ("\" \" X" . t) ("vrdiX") ("prkaX") ("maziX") ("lit X") ("kmusX") ("k Xip") ("hki X") ("daliX") ("c seX") ("aXiyd") ("aXill") (" uXa ") (" arXa") (" Xism") (" Xikl") ("Xuruf") ("Xopu ") ("Xopli") ("Xoise") ("Xogam") ("Xlay ") ("Xizec") ("Xilga") ("Xigar") ("Xerti") ("Xamar") ("Xalta") ("Xalgo") ("Xabir") (") iXe") (") Xin") ("Xade") ("eneX") ("Xunc" . t) ("Xice" . t) ("nkaX") ("usaX") (" vuX") ("akaX") ("piXi") ("9 oX") ("rkiX") ("kilX") ("ovaX") (" iXk" . t) ("lmeX") ("akiX") ("triX") ("emiX") ("asiX") ("Xucu" . t) ("Xosu" . t) ("ulXe" . t) ("kesX" . t) ("kamX" . t) ("nliX") ("0. X") ("ibuX" . t) ("Xizl") ("uriX") ("bliX") ("eXiv" . t) ("Xink" . t) ("sXes") ("ibiX") ("hunX") ("ebiX") ("zolX" . t) ("yuzX" . t) ("uciX" . t) ("uXay" . t) ("serX" . t) ("sXib" . t) ("korX" . t) ("kleX" . t) ("kacX" . t) ("kaXc" . t) ("kXib" . t) ("k'Xe" . t) ("iccX" . t) ("icXc" . t) ("ckiX" . t) ("asXe" . t) (" Xu " . t) ("Xumr" . t) ("Xuha" . t) ("Xugd" . t) ("Xoml" . t) ("Xoma" . t) ("Xkal" . t) ("Xinh" . t) ("Xeho" . t) ("Xcam" . t) ("Xaso" . t) ("Xa's" . t) ("'yeX" . t) ("ziX ") ("vteX") ("vciX") ("ukiX") ("talX") ("relX") ("rciX") ("olX ") ("ogiX") ("ns'X") ("luXl") ("lXig") ("kkeX") ("gsiX") ("fiX ") ("feXt") ("farX") ("fXan") ("dohX") ("ciX'") ("bluX") ("airX") (" ohX") (" Xov") (" Xeg") ("Xteu") ("Xote") ("Xors") ("Xori") ("Xorc") ("Xoln") ("Xolg") ("Xold") ("Xock") ("Xobo") ("Xmil") ("Xlal") ("Xkaz") ("Xizz") ("Ximo") ("Ximb") ("Xif ") ("Xevt") ("Xery") ("Xels") ("Xbet") ("Xage") ("Xach") ("Xabl") ("Xabb") ("6 aX") ("Xaz") ("Xae") ("tX ") ("eXr") ("faX") ("eXo") ("Xaf") ("Xo'") ("eXu") ("eXc") ("Xlo") ("s'X" . t) ("iiX" . t) ("xoX") ("rzX" . t) ("f'X" . t) ("c'X" . t) ("Xyo" . t) ("hkX") ("cyX") ("cfX") ("Xyp") ("Xyc") ("Xtp") ("Xpc") ("Xmo") ("Xiw") ("Xbs") ("Xbm") ("Xaj") ("4aX") ("wX") ("Xf") ("cin acikX") (" Xanlar " . t) ("da Xabas") ("irkoviX") ("n koXan" . t) ("in golX" . t) ("ve aXis") ("troviX ") ("t suXu ") ("cler aX") ("aXiktik") ("a Xin ") ("m . X " . t) ("em Xon" . t) (" s . X" . t) (" reXel" . t) ("\" surX" . t) ("yir Xa") ("ti aX ") ("r uXu ") ("likXis") ("h , iX") ("dat aX") ("a Xiti") ("Xanki'") (", Xop ") (", Xayi") ("a . X" . t) ("skaXi") ("Xadil") ("uleX " . t) ("raXi'" . t) ("ike X" . t) ("cer X" . t) (" saXa" . t) (" perX" . t) (" minX" . t) (" eliX" . t) ("Xordu" . t) ("Xizan" . t) ("Xarik" . t) ("Xaric" . t) ("joviX") ("jeviX") ("biXan") ("anciX") (" ciX ") (" Xisi") (" Xeri") ("Xubur") ("Xorle") ("Xolum") ("Ximis") ("Xeter") ("Xenev") ("Xanku") ("iXer" . t) ("isaX") ("diXi") ("daXi") ("Xag " . t) ("ulXa") ("Xic ") ("miXi") ("Xtio") ("driX") ("caXi") ("Xorp") ("iXay" . t) ("Xabe") ("skeX" . t) (" kiX" . t) ("rpaX") ("rkeX") ("yerX" . t) ("rXen" . t) ("k'Xi" . t) (" ruX" . t) ("Xepe" . t) ("Xaye" . t) ("verX") ("tiaX") ("osiX") ("opeX") ("nXog") ("lmuX") ("Xorr") ("Xorn") ("Xool") ("Xlir") ("Xitr") ("Xipi") ("Xilk") ("Xicc") ("Xerv") ("Xelb") ("hoX") ("Xh ") ("Xde") ("lXo") ("X'd") ("noX") ("Xs ") ("wiX") ("nXc" . t) ("sXb") (" rX") ("Xts") ("Xt ") ("Xox") ("Xof") ("Xoe") ("Xea") ("dX") (" isin Xa") ("aXisind" . t) (" aXindi") ("i uXu ") (" aXini") ("Xelem ") ("cinXik" . t) ("Xincik" . t) (" aXiyl") (" aXidi") ("- disX") (". aXa") ("iniXi") ("aXar'") ("Xelim" . t) ("ro Xo") ("t'Xi " . t) ("rpenX" . t) ("ariXe" . t) (" caXa" . t) ("Xiban" . t) ("suXuk") ("saXid") ("h aXa") ("ekelX") (" Xici") (" Xeci") ("Xola'") ("Xiliz") ("Xalde") ("Xars" . t) ("liXi") ("Xeng") ("Xell") ("lXek" . t) ("iXid") ("Xesm" . t) ("zXak" . t) ("ozXe" . t) ("oXi " . t) ("konX" . t) ("hosX" . t) ("ad'X" . t) ("Xka " . t) ("Xehr" . t) ("Xavl" . t) ("Xamk" . t) ("boXe") ("aXme") ("Xlav") ("Xats") ("Xalv") ("Xace") ("4 aX") ("Xtr") ("lnX") ("Xs'") ("Xuv" . t) ("Xko" . t) (" Xs") ("Xyb") ("Xy'") ("jX") ("Xj") (" aXilarda" . t) ("isin uX") ("Xurumle") ("eXilik") ("s aXil" . t) (" Xinla" . t) ("Xarmin") ("yaziX") ("Xelil") ("Xinli" . t) (" Xard") ("Xuzle" . t) ("Xeyiz" . t) ("Xirit") ("Xapit") ("Xera") ("rXak" . t) ("Xilo" . t) ("uXub") ("lhaX" . t) ("firX" . t) ("auXu" . t) ("Xupi" . t) ("tehX") ("saaX") ("Xoro") ("Xohe") ("Xilv") ("Xath") ("deX") ("beX") ("peX" . t) ("Xilarak" . t) (". aXisi") ("Xikli ") ("Xagalo") ("Xili ") ("ilaXi") (" Xene" . t) ("alXil") ("aXiya") ("laXan" . t) ("aXali" . t) ("Xamli" . t) ("uzgeX") ("rgeXi") ("maXis") (" paXi") (" inX") ("oliX" . t) ("balX") ("eveX") ("oniX") ("Xubu" . t) ("Xoll") ("lXip" . t) (" uXk" . t) ("Xhiz" . t) ("taXm") ("Xity") ("Xerp") ("Xad.") ("aXl" . t) ("naX") ("roX") ("ioX") ("Xv") (" Xurum ") ("penXes" . t) ("kiliX" . t) ("ilanX" . t) ("rkaXi" . t) (" Xila") ("inXek" . t) ("hiXan" . t) (" uXa" . t) ("ciXi") ("olXa") ("usiX") ("d Xo") ("kamX" . t) (" Xul" . t) ("iXol") (" diX") ("Ximn") ("Xoa") ("Xef") ("pin uX") ("Xinar" . t) (" Xing" . t) (" eriX") ("uresX" . t) ("hiriX" . t) ("Xopla") ("Xuna") ("marX") ("goXu" . t) (" Xed") (" eX") (" tX") ("Xai") (" X'") ("Xie") ("ieX") (" Xildir" . t) (" Xivi" . t) ("aXiyi") (" paXa" . t) (" Xere") ("hiraX") (" anX") ("veXi") ("Xalt" . t) ("elXe") ("bX") ("aXile") ("Xola ") (" keX" . t) ("Xord") ("Xetv") ("baliX") ("Xeket") ("Xalif") ("Xiz ") ("aXit") ("Xiro") ("Xevd") ("jaX") (" pX") ("Xto") ("koXak " . t) (" ayXa " . t) ("Xiger") ("ilXa" . t) ("Xeyr" . t) ("malX") ("Xoca") ("Xizr") ("tXh") (" Xm") ("Xarey ") (" Xild") (" Xari") ("guXer" . t) ("liXi") ("aniX") ("sXe " . t) (" aXabi" . t) (" gulX" . t) ("Xeviz") ("raliX" . t) ("aXam" . t) ("eXeb" . t) ("Xolo") ("Xarr") ("Xn") ("inXer" . t) ("Xubay" . t) ("Xavus" . t) ("ceXi") ("yeX") ("Xy ") ("'X") ("n aXisi") (" Xaydi") ("baXi") ("sXa " . t) ("Xilt") ("Xape") ("rXin " . t) ("Xaro") ("usX" . t) ("ikaXi") (" Xama" . t) ("aXima") ("hiXe" . t) (" uXunda") ("ortaXa" . t) (" Xarl") ("kiXi") ("siXr" . t) ("X'n") ("sXo") ("fX" . t) ("Xanta" . t) (" seX" . t) ("paX ") ("oXe" . t) ("Xaf") ("Xou") ("aXilig") (" maXa " . t) ("Xemb" . t) (" Xim ") ("cX") (" taXi") ("eXenin ") (" Xuru" . t) (" Xey") ("yXi") (" aXar" . t) ("urtiX" . t) ("Xanak" . t) ("zX") ("buXuk" . t) ("gaziX" . t) (" erXe" . t) ("vaXi") ("Xhe") (" Xese") ("riXi") ("Xete" . t) ("alXa" . t) ("Xogr") ("gaXi") ("Xong" . t) ("Xon") ("Xav") ("Xamur" . t) (" muX") ("giXi") ("gX") ("meXi") ("eXem" . t) ("Xuku" . t) ("Xo ") ("aXac" . t) (" iXa") (" gerX" . t) (" biX" . t) ("Xeh") (" aXan" . t) ("Xesu") (" Xin " . t) ("yiXi") ("Xc") ("Xah") ("Xin'" . t) ("Xib") ("Xom") ("aXil ") ("Xuz") (" Xeb") ("Xela") ("Xadd") ("leX") ("Xih") (" Xas") ("sviX" . t) ("aXilik") (" arX" . t) ("yaXi") ("Xerr") ("eXec" . t) ("ciXe" . t) ("Xki" . t) ("Xank" . t) ("Xevh") ("pX" . t) ("esX") ("iXio") (" Xos") ("eXik") ("eXhu" . t) ("Xesa") ("Xk") ("elX" . t) (" X ") ("Xia") ("tiX") ("l aXa" . t) ("Xaz") ("kktX") ("haX") (" suX" . t) (" maXi" . t) (" Xl") ("Xd") ("Xep") ("raXi") ("reXi") (" ilX" . t) ("Xiv") ("aXilar") ("cerX" . t) ("geXer" . t) (" Xeva") ("sXi" . t) ("Xz") (" Xen") ("neX") ("ilXi") (" olX" . t) (" kaX" . t) (" Xem") ("rXi") ("parX" . t) ("amaXi") ("teXi") (" Xid") ("Xan") ("Xr") (" iX" . t) (" uX" . t) ("vX") (" Xin") (" kuXu" . t) ("iXil") (" Xam") ("Xunk" . t) ("hX" . t) (" meX") ("tX" . t) ("mX") ("eXen" . t) ("Xh") ("Xez") ("nXi") ("gerX" . t) ("kX" . t) ("Xi ") ("Xu") (" X" . t) ("Xe") ("Xa") ("X" . t) )
