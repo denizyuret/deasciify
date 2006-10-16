@@ -1,4 +1,4 @@
-(defvar turkish-version "$Id$")
+(defvar turkish-el-version "$Id: turkish.el,v 1.2 2006/10/16 12:55:00 dyuret Exp dyuret $")
 
 (local-set-key "\C-t" 'turkish-toggle-accent)
 (local-set-key " " 'turkish-correct-last-word)
