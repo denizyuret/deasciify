@@ -1,4 +1,4 @@
-(defvar turkish-el-version "$Id: turkish.el,v 1.4 2006/10/16 13:56:42 dyuret Exp dyuret $")
+(defvar turkish-el-version "$Id: turkish.el,v 1.5 2006/10/16 21:33:26 dyuret Exp dyuret $")
 
 ;;; Emacs Turkish Extension (c) Deniz Yuret, 2006
 
@@ -14,22 +14,32 @@
 ;;; text using the GPA algorithm.  For more information on GPA:
 ;;;       http://www.denizyuret.com/pub/iscis06
 
-;;; One of these days I will turn this into a proper emacs minor mode.
-;;; In order to use it for now, first open a buffer in which you wish
-;;; to type Turkish text and then load turkish.el:
+;;; To activate the program first load this file into emacs:
 ;;;       M-x load-file ENTER turkish.el ENTER
+;;; Then turn on the turkish mode:
+;;;       M-x turkish-mode
 
-;;; The program tries to correct the previous word by adding Turkish
-;;; accents each time you hit space:
-
-(local-set-key " " 'turkish-correct-last-word)
-(local-set-key "\t" 'turkish-correct-last-word)
-(local-set-key "\C-m" 'turkish-correct-last-word)
-
-;;; If the program makes a mistake, you can use C-t to toggle the
-;;; accent of the character at the cursor:
-
-(local-set-key "\C-t" 'turkish-toggle-accent)
+(define-minor-mode turkish-mode
+  "Toggle Turkish mode.
+     With no argument, this command toggles the mode.
+     Non-null prefix argument turns on the mode.
+     Null prefix argument turns off the mode.
+     
+     When Turkish mode is enabled, the space, tab, and
+     enter keys correct the previous word by adding 
+     Turkish accents.  C-t toggles the accent of the 
+     character under cursor.
+     See the command \\[turkish-correct-last-word]."
+      ;; The initial value.
+      nil
+      ;; The indicator for the mode line.
+      " Turkish"
+      ;; The minor mode bindings.
+      '((" " . turkish-correct-last-word)
+	("\t" . turkish-correct-last-word)
+	("\C-m" . turkish-correct-last-word)
+	("\C-t" . turkish-toggle-accent))
+      )
 
 ;;; The following makes the default encoding utf-8 but files with
 ;;; latin-5 encoding will also be recognized:
