@@ -1,4 +1,4 @@
-(defvar turkish-el-version "$Id: turkish.el,v 1.5 2006/10/16 21:33:26 dyuret Exp dyuret $")
+(defvar turkish-el-version "$Id: turkish.el,v 1.6 2006/11/12 19:41:33 dyuret Exp dyuret $")
 
 ;;; Emacs Turkish Extension (c) Deniz Yuret, 2006
 
@@ -27,9 +27,8 @@
      
      When Turkish mode is enabled, the space, tab, and
      enter keys correct the previous word by adding 
-     Turkish accents.  C-t toggles the accent of the 
-     character under cursor.
-     See the command \\[turkish-correct-last-word]."
+     Turkish accents.  For corrections use C-t to toggle
+     the accent of the character under cursor.
       ;; The initial value.
       nil
       ;; The indicator for the mode line.
