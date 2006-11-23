@@ -30,12 +30,14 @@ sub process {
     $tr_buf = (' ' x $window) . '. ' . $tr_buf . '.' . (' ' x $window);
     my $en_buf = $tr_buf;
     $en_buf =~ tr/çðýöþü/cgiosu/;
+    my $lc_buf = $tr_buf;
+    $lc_buf =~ tr/çðýöþü/CGIOSU/;
 #    print "$tr_buf\n$en_buf\n";
     my $pos = -1;
     while(($pos = index($en_buf, $letter, $pos + 1)) >= 0) {
 #	print "tr_buf = [".substr($tr_buf, $pos, 1)."\n";
 #	print "en_buf = [".substr($en_buf, $pos, 1)."\n";
 	print 0 + (substr($tr_buf, $pos, 1) ne substr($en_buf, $pos, 1)),
-	' ' , substr($en_buf, $pos - $window, 2*$window + 1), "\n";
+	' ' , substr($lc_buf, $pos - $window, 2*$window + 1), "\n";
     }
 }
