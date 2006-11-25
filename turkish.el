@@ -1,4 +1,4 @@
-(defvar turkish-el-version "$Id: turkish.el,v 1.8 2006/11/18 09:44:34 dyuret Exp dyuret $")
+(defvar turkish-el-version "$Id: turkish.el,v 1.9 2006/11/23 17:18:23 dyuret Exp dyuret $")
 
 ;;; Emacs Turkish Extension (c) Deniz Yuret, 2006
 
@@ -79,10 +79,9 @@ to toggle the accent of the character under cursor."
 	 (m (and pl (turkish-match-pattern (cdr pl)))))
     ;; if m then char should turn into turkish else stay ascii
     ;; only exception with capital I when we need the reverse
-    (cond 
-     ((= ?I ch) (not m))
-     ((= ch tr) m)
-     (t (not m)))))
+    (if (= ?I tr)
+	(if (= ch tr) (not m) m)
+      (if (= ch tr) m (not m)))))
 
 (defvar turkish-context-size 10)
 
@@ -108,22 +107,8 @@ to toggle the accent of the character under cursor."
 		;;(progn (print (list 'accept txt r))
 		(setq rank r))))))))
 
-(defun turkish-match-pattern-old (str ignore)
-  "Decides whether a pattern is a match when X and point are aligned."
-  (let* ((idx (turkish-char-position ?X str))
-	 (start (- (point) idx))
-	 (end (+ start (length str))))
-    (and (>= start (point-min))
-	 (<= end (point-max))
-	 (let ((txt (turkish-remove-non-alnum
-		     (downcase
-		      (turkish-asciify 
-		       (buffer-substring-no-properties start end))))))
-	   (aset txt idx ?X)
-	   ;; (if (string= txt str) (message str))
-	   (string= txt str)))))
-
 (defun turkish-char-maybe-p (char)
+  "True for turkish accented characters and their ascii equivalents."
   (not (null (aref turkish-toggle-accent-table char))))
 
 (defun turkish-test-buffer ()
@@ -138,19 +123,13 @@ to toggle the accent of the character under cursor."
 	(if (turkish-char-maybe-p (following-char))
 	    (progn (setq n (1+ n))
 		   (if (turkish-need-correction-p)
-		       (progn (push-mark nil t t)
-			      (setq k (1+ k))))))
+		       (progn 
+			 (princ (following-char) (get-buffer "foo")) (terpri (get-buffer "foo"))
+			 (push-mark nil t t)
+			 (setq k (1+ k))))))
 	(forward-char))
       (princ (list (- (float-time) t0) n k (/ k (+ n 0.0)))))))
 	
-(defun turkish-char-position (char str)
-  (let ((n (length str))
-	(i 0))
-    (while (and (< i n)
-		(not (= char (aref str i))))
-      (setq i (+ 1 i)))
-    (if (< i n) i nil)))
-
 (defun turkish-remove-non-alnum (str)
   (let ((n (length str))
 	(i 0))
