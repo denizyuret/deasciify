@@ -25,11 +25,13 @@ while(<>) {
 	$tr_buf .= lc($_);
     }
 }
+process($tr_buf) if $tr_buf;
 
 sub process {
     $tr_buf = (' ' x $window) . '. ' . $tr_buf . '.' . (' ' x $window);
     my $en_buf = $tr_buf;
     $en_buf =~ tr/çðýöþü/cgiosu/;
+#    print $en_buf . "\n"; return;
     my $lc_buf = $tr_buf;
     $lc_buf =~ tr/çðýöþü/CGIOSU/;
 #    print "$tr_buf\n$en_buf\n";
