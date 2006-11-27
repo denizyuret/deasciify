@@ -1,2 +1,2 @@
 #!/bin/sh
-./features.pl $1 | ./gpa -d 1 -v 2 -w 500
+zcat | ./features.pl 9 | perl -pe 's/\s+/\n/g' | ./rcount
