@@ -1,17 +1,9 @@
 #!/usr/bin/perl -w
 use strict;
 
-sub mypush {
-    my ($a, $x) = @_;
-    for my $ai (@$a) {
-	return if $x eq $ai;
-    }
-    push @$a, $x;
-}
-
 my $mode;
 if (@ARGV and $ARGV[0] =~ /^\d+$/) {
-    $mode = $ARGV[0];
+    $mode = shift;
 } else {
     $mode = 1;
 }
@@ -40,35 +32,34 @@ while(<>) {
     $pre =~ s/\W+/_/g;
     my $post = substr($str, 11, 10);
     $post =~ s/\W+/_/g;
+    if (($mode & $KEEP_LEFT_CAPS) == 0) { $pre = lc($pre); }
+    if (($mode & $KEEP_RIGHT_CAPS) == 0) { $post = lc($post); }
 
     # The base pattern has $l letters on the left and $r letters on
     # the right
 
-    my @ft = ();
+    print $class;
 
     for my $l (0 .. length($pre)) {
 	my $a = substr($pre, -$l, $l);
-	if (($mode & $KEEP_LEFT_CAPS) == 0) { $a = lc($a); }
 	for my $r (0 .. length($post)) {
 	    next if $l+$r == 0;	# everybody has 'X'
 	    my $b = substr($post, 0, $r);
-	    if (($mode & $KEEP_RIGHT_CAPS) == 0) { $b = lc($b); }
 	    my $p = $a . 'X' . $b;
 	    if ($mode & $PRINT_ALL) { 
-		mypush(\@ft, $p);
+		print " $p";
 	    }
 	    if ($mode & $PRINT_NO_CONSONANTS) {
 		my $nc = $p;
 		$nc =~ s/[^aeiouAEIOUX_]/B/g;		
-		mypush(\@ft, $nc);
+		print " $nc";
 	    }
 	    if ($mode & $PRINT_NO_VOWELS) {
 		my $nv = $p;
 		$nv =~ s/[aeiouAEIOU]/A/g;
-		mypush(\@ft, $nv);
+		print " $nv";
 	    }
 	}
     }
-    print join(' ', $class, @ft);
     print "\n";
 }
