@@ -28,7 +28,8 @@ while(<>) {
 process($tr_buf) if $tr_buf;
 
 sub process {
-    $tr_buf = (' ' x $window) . '. ' . $tr_buf . '.' . (' ' x $window);
+    $tr_buf =~ s/\W+/_/g;
+    $tr_buf = ('_' x $window) . $tr_buf . ('_' x $window);
     my $en_buf = $tr_buf;
     $en_buf =~ tr/çðýöþü/cgiosu/;
 #    print $en_buf . "\n"; return;
