@@ -1,2 +1,2 @@
 #!/bin/sh
-zcat | ./features.pl 9 | perl -pe 's/\s+/\n/g' | ./rcount
+zcat | head -500000 | ./features | ./gpa -d 1 -w 500
