@@ -1,10 +1,10 @@
-(defvar turkish-el-version "$Id: turkish.el,v 2.3 2006/11/29 13:51:30 dyuret Exp dyuret $")
+(defvar turkish-el-version "$Id: turkish.el,v 2.4 2010/02/17 16:59:03 dyuret Exp dyuret $")
 
-;;; Emacs Turkish Extension (c) Deniz Yuret, 2006
+;;; Emacs Turkish Extension (c) Deniz Yuret, 2006, 2010
 
 ;;; This is for people trying to type Turkish documents on a U.S.
 ;;; keyboard.  The latest version is available at:
-;;;       http://www.denizyuret.com/turkish
+;;; http://denizyuret.blogspot.com/2006/11/emacs-turkish-mode.html
 
 ;;; To activate the program first load this file into emacs:
 ;;;       M-x load-file ENTER turkish.el ENTER
@@ -83,7 +83,7 @@ to toggle the accent of the character under cursor."
 (defun turkish-correct-last-word ()
   "Adds necessary accents to the last word when a space is typed."
   (interactive)
-  (if (= ?\r last-input-event)
+  (if (= ?\r last-command-event)
       (newline)
     (self-insert-command 1))
   (save-excursion
