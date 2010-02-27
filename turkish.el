@@ -1,4 +1,4 @@
-(defvar turkish-el-version "$Id: turkish.el,v 2.5 2010/02/17 20:45:01 dyuret Exp dyuret $")
+(defvar turkish-el-version "$Id: turkish.el,v 2.6 2010/02/27 15:40:48 dyuret Exp dyuret $")
 
 ;;; Emacs Turkish Extension (c) Deniz Yuret, 2006, 2010
 
@@ -112,6 +112,16 @@ to toggle the accent of the character under cursor."
 	(if (not tr) (forward-char)
 	  (delete-char 1)
 	  (insert tr))))))
+
+(defun turkish-correct-buffer ()
+  "Adds necessary accents to the words in the whole buffer."
+  (interactive)
+  (turkish-correct-region (point-min) (point-max)))
+
+(defun turkish-asciify-buffer ()
+  "Replaces turkish letters with ascii equivalents in the whole buffer."
+  (interactive)
+  (turkish-asciify-region (point-min) (point-max)))
 
 (defun turkish-toggle-last-word ()
   "Toggles the last word correction, so that one can undo without losing place."
