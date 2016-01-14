@@ -1,0 +1,207 @@
+2006-11-29  Deniz Yuret  <dyuret@ku.edu.tr>
+
+	* turkish.el: I completed the 1m instance training.  The command:
+	% zcat c.inst.gz | head -1100000 | features | gpa -d 1 -w 1000 -v 11
+	For o and s, this gave out of memory error.  2G was not enough.
+	I recompiled gpa for 64 bit, that wasn't much help.
+	To cut down I wrote repeated.c which only outputs repeated
+	features, and features.c which takes a list of valid features as
+	an argument and only outputs those.  The way it works is:
+	% zcat o.inst.gz | repeated | gzip > o.rep.gz
+	% zcat o.inst.gz | head -1100000 | features o.rep.gz | gpa -d 1 -w 1000 -v 11
+
+	Results are:
+	(1) ambiguous character
+	(2) number of instances
+	(3) number of errors
+	(4) error period = (2/3)
+	(5) number of rules.
+
+	(c 10503 46 228 2547)
+	(g 11316 14 808 752)
+	(i 66470 322 206 2953)
+	(o 17298 57 303 1621)
+	(s 23410 151 155 3198)
+	(u 24395 124 196 2394)
+	(all 153392 714 214 13465)
+	
+	
+2006-11-27  Deniz Yuret  <dyuret@ku.edu.tr>
+
+	* foo.100k.latin5: Some characters \221, \222, prevent emacs from
+	recognizing this file as latin5 and turkish.el does not work.
+	foo.100k.fixed is properly recognized, so is foo.100k.utf8.
+
+	* turkish.el:  We switched to using accents to the left.
+	;;; Current accuracy on a 100000 token test set, columns are (1)
+	;;; ambiguous character, (2) number of instances, (3) number of
+	;;; errors, (4) error period (1/prob(error)), (5) number of rules
+
+	Before:
+	;;; c    10503    91  115   791
+	;;; g    11316    62  182   184
+	;;; i    66470  2179   31  1994
+	;;; o    17298   143  121   552
+	;;; s    23410   365   64  1169
+	;;; u    24395   600   41  1790
+	;;; all 153392  3440   45
+	After:
+	;;; c    10503   114   92   812
+	;;; g    11316    60  188   205
+	;;; i    66470   905   73   971
+	;;; o    17298   152  113   526
+	;;; s    23410   329   71  1207
+	;;; u    24395   300   81   843
+	;;; all 153392  1860   82
+
+	Again we have small differences with direct testing with dlist:
+	i=889, s=330, u=291; the others are the same.
+
+	Next steps: find out why the differences exist.  One theory is
+	that instances.pl does not do the cleaning of \W, so we sometimes
+	get a shorter context.  Fixed instances.pl, still the same
+	problem: i=889, s=331, u=291.
+
+	More importantly: fix gpa so that we can run with more data.
+	
+2006-11-26  Deniz Yuret  <dyuret@ku.edu.tr>
+
+	* testing modes: validation results on 100K for each of training,
+	validation, and testing.  Columns are: (1) dlist length (2) valid
+	1/err (3) test 1/err.  Result: the wildcard vowels and consonants
+	do not make much difference, maybe making the dlists a little
+	shorter.  Introducing the left side accents make a big difference
+	with i and u accuracy and dlist length.
+	
+	c1.out   805 133 90
+	c3.out   709 135 94
+	c5.out
+	c7.out   out of memory
+	c9.out   812 139 92
+	c11.out  713 141 95
+	c13.out  723 139 89
+	c15.out
+	
+	g1.out   204 603 219
+	g3.out   187 575 222
+	g5.out   169 596 228
+	g7.out   out of memory
+	g9.out   205 681 236
+	g11.out  173 671 249
+	g13.out  165 681 229
+	g15.out  out of memory
+	
+	i1.out  1963 57 40
+	i3.out  error
+	i5.out  out of memory
+	i7.out
+	i9.out  971 131 77
+	i11.out
+	i13.out out of memory
+	i15.out out of memory
+	
+	o1.out  552 192 130
+	o3.out  527 199 129
+	o5.out  out of memory
+	o7.out
+	o9.out  526 197 133
+	o11.out
+	o13.out out of memory
+	o15.out out of memory
+	
+	s1.out  1132 96 67
+	s3.out  1106 90 62
+	s5.out  out of memory
+	s7.out  out of memory
+	s9.out  1207 98 69
+	s11.out 1049 96 68
+	s13.out out of memory
+	s15.out
+
+	u1.out  1662 63 44
+	u3.out  1807 59 41
+	u5.out  out of memory
+	u7.out  out of memory
+	u9.out  843 173 92
+	u11.out 647 176 104
+	u13.out
+	u15.out
+
+2006-11-25  Deniz Yuret  <dyuret@ku.edu.tr>
+
+	* features.pl: Rewrote to facilitate feature selection.  Takes a
+	mode argument.  The bits of the mode are:
+
+	Bit 0: print all letters
+	Bit 1: print replace consonants with B
+	Bit 2: print replace vowels with A
+	Bit 3: keep caps on the left
+	Bit 4: keep caps on the right
+
+	Meaningful modes to test are: 
+	00001 = 1
+	00011 = 3
+	00101 = 5
+	00111 = 7
+	01001 = 9
+	01011 = 11
+	01101 = 13
+	01111 = 15
+
+	This time use -v 2 and -w 500 with gpa.
+	
+	* foo.1k.latin5: why is the error rate of turkish-test-buffer
+	different?
+	- there are <s> and <doc> tags which we should strip.
+	- the rest of the difference comes from treatment of i's.
+	The new accuracy on the last 100k is 3422 errors out of 153392
+	instances, roughly 1/45.
+
+	Current accuracy on a 100000 token test set, columns are (1)
+	ambiguous character, (2) number of instances, (3) number of
+	errors, (4) error period (1/prob(error)).
+
+	c    10503    91  115
+	g    11316    62  182
+	i    66470  2179   31
+	o    17298   143  121
+	s    23410   365   64
+	u    24395   600   41
+	all 153392  3440   45
+
+	Note: testing with dlist on the same data gives 3440 errors,
+	difference is evenly distributed among letters.  Possibly have to
+	do with punctuation etc.
+	
+2006-11-23  Deniz Yuret  <dyuret@ku.edu.tr>
+
+	* Feature selection: The accuracy of the current algorithm is
+	around 96.27% (err rate of 1/27, based on the last 100k tokens of
+	Milliyet: 166515 instances, 160305 correct).  To improve, I
+	decided to make use of the accents to the left of the target.
+	Accented turkish characters are represented with uppercase ascii
+	characters in the patterns.  In addition to help with vowel
+	harmony I have substring features where all consonants are
+	replaced with B, and all vowels replaced with A.  I am keeping the
+	window size of +-10 letters.  Using a training + validation set of
+	100000 instances for each letter, I collect results for the
+	validation accuracy: 100 and 500 are the old models with 100k and
+	500k training from the backup directory.  none, A, B, AB are the
+	new 100k training results with various combinations of wildcard
+	features and marked left context.  The entries are PPP/QQQ where
+	PPP is the average period of mistakes (1/prob(mistake)) and QQQ is
+	the number of rules.
+
+         inst/kw  major    100      500      none     A        B        AB
+         c 105    53.44%   115/791  146/1562 078/708  081/620  073/624  077/528
+         g 113    54.88%   183/184  263/407  241/180  157/162  213/160  199/152
+         i 665    64.51%   031/1994 044/3982 064/850  062/835  070/628  067/619
+         o 173    74.33%   121/552  211/1025 099/547  099/528  099/444  090/506
+         s 234    69.09%   064/1169 092/1770 059/1032 053/987  056/989  053/794
+         u 244    61.97%   041/1790 059/2858 064/783  061/761  063/601  061/593
+
+	Error rates significantly different than validation results.
+	Seems suspicious.  g.lst is 1/800 based on validation, but 1/241
+	based on testing.  Error rate of the turkish-test-buffer
+ 	(1/27) also seems very high compared to the results of each
+	decision list, it should be an average.  What is going on?
