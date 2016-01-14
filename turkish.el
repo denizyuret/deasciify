@@ -1,4 +1,4 @@
-(defvar turkish-el-version "$Id: turkish.el,v 2.6 2010/02/27 15:40:48 dyuret Exp dyuret $")
+(defvar turkish-el-version "$Id: turkish.el,v 2.7 2010/02/27 18:22:36 dyuret Exp $")
 
 ;;; Emacs Turkish Extension (c) Deniz Yuret, 2006, 2010
 

@@ -2,22 +2,21 @@ universe = vanilla
 executable = doit.sh
 log = doit.log
 notification = Never
-requirements = ((OpSys == "LINUX") && (Arch == "X86_64"))
+requirements = ((OpSys == "LINUX") && ((Arch == "INTEL") || (Arch == "X86_64")))
 image_size = 1800000
 should_transfer_files = YES
-when_to_transfer_output = ON_EXIT
-transfer_input_files = features,gpa
+when_to_transfer_output = ON_EXIT_OR_EVICT
 coresize = 0
 
-input = o.inst.gz
-arguments = o.inst.gz
-error = o2.err
-output = o2.out
+arguments = o
+transfer_input_files = features,gpa,o.inst.gz,o.rep.gz
+error = o4.err
+output = o4.out
 queue
 
-input = s.inst.gz
-arguments = s.inst.gz
-error = s2.err
-output = s2.out
+arguments = s
+transfer_input_files = features,gpa,s.inst.gz,s.rep.gz
+error = s4.err
+output = s4.out
 queue
 
